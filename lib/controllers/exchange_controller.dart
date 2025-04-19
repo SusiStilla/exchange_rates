@@ -19,16 +19,18 @@ class ExchangeController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _usdRates = await ExchangeApi.loadCachedRates();
-
-      // Fetch from network only if no local data
-      if (_usdRates == null) {
-        _usdRates = await ExchangeApi.fetchAndCacheRates();
-      }
-
+      // Always try to fetch fresh data
+      _usdRates = await ExchangeApi.fetchAndCacheRates();
       _uiState = UIState.success;
     } catch (e) {
-      _uiState = UIState.error;
+      // If API fails, try to load cached data
+      _usdRates = await ExchangeApi.loadCachedRates();
+
+      if (_usdRates != null) {
+        _uiState = UIState.success;
+      } else {
+        _uiState = UIState.error;
+      }
     }
 
     notifyListeners();
