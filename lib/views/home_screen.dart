@@ -11,7 +11,12 @@ class HomeScreen extends StatelessWidget {
     return Consumer<ExchangeController>(
       builder: (context, controller, _) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Exchange Rates')),
+          appBar: AppBar(
+            title: const Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Currency Converter'),
+            ),
+          ),
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -34,7 +39,7 @@ class HomeScreen extends StatelessWidget {
                 UIState.success => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _CurrencyDropdown(),
+                      const _CurrencyInputSection(),
                       const SizedBox(height: 16),
                       Expanded(child: _RatesGrid()),
                     ],
@@ -48,27 +53,51 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _CurrencyDropdown extends StatelessWidget {
+class _CurrencyInputSection extends StatelessWidget {
+  const _CurrencyInputSection();
+
   @override
   Widget build(BuildContext context) {
     final controller = context.read<ExchangeController>();
     final currencies = controller.convertedRates.keys.toList()..sort();
     final selected = controller.selectedCurrency;
 
-    return DropdownButton<String>(
-      value: selected,
-      isExpanded: true,
-      items: currencies.map((code) {
-        return DropdownMenuItem(
-          value: code,
-          child: Text(code),
-        );
-      }).toList(),
-      onChanged: (value) {
-        if (value != null) {
-          controller.setSelectedCurrency(value);
-        }
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          initialValue: controller.amount.toStringAsFixed(2),
+          decoration: const InputDecoration(
+            labelText: 'Amount',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          onChanged: controller.setAmount,
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<String>(
+          value: selected,
+          decoration: const InputDecoration(
+            labelText: 'Select the currency',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          isExpanded: true,
+          icon: const Icon(Icons.arrow_drop_down),
+          items: currencies.map((code) {
+            return DropdownMenuItem(
+              value: code,
+              child: Text(code),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              controller.setSelectedCurrency(value);
+            }
+          },
+        ),
+      ],
     );
   }
 }
@@ -81,7 +110,7 @@ class _RatesGrid extends StatelessWidget {
     return GridView.builder(
       itemCount: rates.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // 👈 3 items per row
+        crossAxisCount: 3,
         childAspectRatio: 0.9,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
@@ -93,7 +122,6 @@ class _RatesGrid extends StatelessWidget {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Circular currency code
             Container(
               width: 50,
               height: 50,
@@ -112,8 +140,6 @@ class _RatesGrid extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-
-            // Rectangular value box
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(

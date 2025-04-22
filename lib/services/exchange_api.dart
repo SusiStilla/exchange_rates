@@ -11,7 +11,6 @@ class ExchangeApi {
       'https://v6.exchangerate-api.com/v6/$_apiKey/latest/USD';
   static const String _storageKey = 'exchange_rates_cache';
 
-  // Fetch from network and save to local storage
   static Future<ExchangeRate> fetchAndCacheRates() async {
     final response = await http.get(Uri.parse(_url));
 
@@ -31,7 +30,6 @@ class ExchangeApi {
     }
   }
 
-  // Load from local storage
   static Future<ExchangeRate?> loadCachedRates() async {
     final prefs = await SharedPreferences.getInstance();
     final cached = prefs.getString(_storageKey);

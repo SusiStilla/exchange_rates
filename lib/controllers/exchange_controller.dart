@@ -7,30 +7,24 @@ enum UIState { loading, success, error }
 class ExchangeController extends ChangeNotifier {
   UIState _uiState = UIState.loading;
   String _selectedCurrency = 'USD';
+  double _amount = 1.0;
   ExchangeRate? _usdRates;
 
   UIState get uiState => _uiState;
   String get selectedCurrency => _selectedCurrency;
+  double get amount => _amount;
   Map<String, double> get convertedRates => _convertRates();
 
-  // Load from cache or fetch from API
   Future<void> fetchRates() async {
     _uiState = UIState.loading;
     notifyListeners();
 
     try {
-      // Always try to fetch fresh data
       _usdRates = await ExchangeApi.fetchAndCacheRates();
       _uiState = UIState.success;
     } catch (e) {
-      // If API fails, try to load cached data
       _usdRates = await ExchangeApi.loadCachedRates();
-
-      if (_usdRates != null) {
-        _uiState = UIState.success;
-      } else {
-        _uiState = UIState.error;
-      }
+      _uiState = _usdRates != null ? UIState.success : UIState.error;
     }
 
     notifyListeners();
@@ -38,10 +32,15 @@ class ExchangeController extends ChangeNotifier {
 
   void setSelectedCurrency(String currency) {
     _selectedCurrency = currency;
-    notifyListeners(); // Just recalculate from USD locally
+    notifyListeners();
   }
 
-  // Convert all rates from USD → selectedCurrency
+  void setAmount(String input) {
+    final parsed = double.tryParse(input);
+    _amount = parsed != null && parsed > 0 ? parsed : 1.0;
+    notifyListeners();
+  }
+
   Map<String, double> _convertRates() {
     if (_usdRates == null || !_usdRates!.rates.containsKey(_selectedCurrency)) {
       return {};
@@ -51,7 +50,7 @@ class ExchangeController extends ChangeNotifier {
     final Map<String, double> converted = {};
 
     _usdRates!.rates.forEach((code, usdValue) {
-      converted[code] = usdValue / baseToSelected;
+      converted[code] = (usdValue / baseToSelected) * _amount;
     });
 
     return converted;
