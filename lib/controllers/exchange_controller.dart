@@ -55,4 +55,10 @@ class ExchangeController extends ChangeNotifier {
 
     return converted;
   }
+
+  // Only for unit testing — not exposed in UI
+  void testInjectRates(ExchangeRate mockRates) {
+    _usdRates = mockRates;
+    notifyListeners();
+  }
 }
